@@ -193,9 +193,9 @@ with st.expander("🚫 Negative Prompt (Optional) - Advanced Control", expanded=
 
     negative_prompt = st.text_area(
         "Negative Prompt:",
-        placeholder="e.g., CGI, 3D render, cartoon, illustration, blurry, bokeh, shallow depth of field, defocus, background blur, soft focus, unrealistic, artificial, bad anatomy, deformed hands, extra fingers, missing fingers, fused fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed body parts",
+        placeholder="e.g., CGI, 3D render, cartoon, illustration, blurry, bokeh, shallow depth of field, defocus, background blur, soft focus, unrealistic, artificial, bad anatomy, deformed hands, extra fingers, plastic skin, smooth skin, airbrushed skin, perfect skin, poreless skin, waxy skin, doll skin, mannequin skin, fake skin texture",
         height=100,
-        help="Avoid fake/artificial elements, ALL types of blur, and bad anatomy! For humans: add 'bad anatomy, deformed hands, extra fingers, mutated body parts' to ensure realistic proportions.",
+        help="Avoid fake/artificial elements, ALL types of blur, and bad anatomy! For realistic human skin: add 'plastic skin, smooth skin, airbrushed skin, poreless skin, waxy skin' to get real skin with visible pores and texture.",
         key="negative_prompt"
     )
 
@@ -207,12 +207,12 @@ def enhance_prompt(base_prompt, style, ultra_realism=False):
 
     if ultra_realism:
         # Ultra realism mode - mimicking real camera photography with authentic characteristics
-        human_anatomy_detail = ", anatomically correct, realistic human anatomy, natural skin texture, real skin pores, authentic human features, lifelike proportions, genuine human appearance, medical photography accuracy, true to life anatomy" if contains_human else ""
+        human_anatomy_detail = ", anatomically correct, realistic human anatomy, real human skin texture, visible skin pores, skin imperfections, natural skin subsurface scattering, authentic dermal details, real skin microstructure, fine skin lines, natural skin blemishes, realistic skin tone variation, genuine skin appearance, skin texture like real photographs of humans, dermatological accuracy, macro photography skin detail, individual pore visibility, natural skin oils, authentic epidermal texture, real subcutaneous details, lifelike skin translucency, biological skin accuracy, medical photography skin precision, true to life human skin, photorealistic flesh tones, natural vein visibility under skin, authentic skin undertones, real human dermis characteristics" if contains_human else ""
         return f"{base_prompt}, RAW photo, genuine photograph, real camera capture, photorealistic, ultra realistic, hyper detailed, 8k uhd, shot on Canon EOS R5, professional DSLR photography, natural photograph, real world scene, authentic lighting, real textures, film grain, natural color grading, high dynamic range, proper exposure, masterpiece quality, crystal clear, sharp focus everywhere, deep focus f/22, everything in focus, full scene detail, volumetric atmospheric lighting, physically accurate, extreme detail throughout, intricate real-world details, accurate colors, natural skin tones, realistic materials, perfect clarity, comprehensive detail, no artificial blur, infinite depth of field, everything sharp, all elements detailed, true to life, optical perfection, real photograph quality, entire scene in sharp focus, background highly detailed, foreground and background equally sharp, no depth of field blur, no bokeh, no defocus, complete scene clarity, f/32 aperture, tack sharp throughout{human_anatomy_detail}"
     elif style == "None - Use my prompt as-is":
         return base_prompt
     elif style == "Photorealistic":
-        human_anatomy_detail = ", anatomically correct, realistic human anatomy, natural skin texture, real skin pores, authentic human features, lifelike proportions, genuine human appearance" if contains_human else ""
+        human_anatomy_detail = ", anatomically correct, realistic human anatomy, real human skin texture, visible skin pores, skin imperfections, natural skin subsurface scattering, authentic dermal details, fine skin lines, realistic skin tone variation, genuine skin appearance like real photographs, individual pore visibility, natural skin oils, authentic epidermal texture, lifelike skin translucency, photorealistic flesh tones, natural vein visibility, authentic skin undertones" if contains_human else ""
         return f"{base_prompt}, RAW photo, real photograph, photorealistic, highly detailed, 8k, sharp focus throughout entire image, deep focus f/16, everything in focus, professional DSLR photography, natural lighting, real world scene, authentic colors, film grain, no background blur, genuine camera capture, background highly detailed, foreground and background equally sharp, no bokeh, no defocus, complete scene clarity{human_anatomy_detail}"
     elif style == "Digital Art":
         return f"{base_prompt}, digital art, highly detailed throughout, sharp focus everywhere, intricate details, trending on artstation, concept art, everything in focus"
@@ -325,6 +325,79 @@ if generate_button:
                     mime="image/png",
                     use_container_width=True
                 )
+
+                # Image refinement section
+                st.markdown("---")
+                st.subheader("🔧 Refine This Image")
+                st.markdown("Want to improve this image? Tell the AI what to change!")
+
+                refinement_prompt = st.text_area(
+                    "What would you like to improve or change?",
+                    placeholder="e.g., Make the colors more vibrant, add more detail to the face, make the lighting brighter, remove the background blur",
+                    height=80,
+                    key="refinement_prompt"
+                )
+
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col2:
+                    refine_button = st.button("🎨 Regenerate with Changes", use_container_width=True, key="refine_button")
+
+                if refine_button:
+                    if not refinement_prompt.strip():
+                        st.warning("Please describe what you'd like to improve!")
+                    else:
+                        # Create enhanced prompt with refinement instructions
+                        refined_prompt = f"{prompt}, {refinement_prompt}"
+
+                        st.info(f"**Regenerating with improvements:** {refinement_prompt}")
+
+                        with st.spinner("🎨 Creating improved version..."):
+                            try:
+                                # Enhance the refined prompt
+                                enhanced_refined_prompt = enhance_prompt(refined_prompt, style_preset, ultra_realism=realism_mode)
+
+                                # Add quality keywords if not in realism mode
+                                if not realism_mode:
+                                    if add_details and "detailed" not in enhanced_refined_prompt.lower():
+                                        enhanced_refined_prompt += ", highly detailed throughout entire scene"
+                                    if add_quality:
+                                        enhanced_refined_prompt += ", high quality, sharp focus everywhere, everything in focus, deep focus, no blur"
+
+                                # Generate refined image
+                                refined_generation_params = {
+                                    "prompt": enhanced_refined_prompt,
+                                    "model": MODEL_NAME,
+                                    "width": actual_width,
+                                    "height": actual_height,
+                                    "guidance_scale": actual_guidance_scale,
+                                    "num_inference_steps": actual_steps
+                                }
+
+                                if negative_prompt and negative_prompt.strip():
+                                    refined_generation_params["negative_prompt"] = negative_prompt
+
+                                refined_image = client.text_to_image(**refined_generation_params)
+
+                                # Display refined image
+                                st.success("✨ Improved image generated!")
+                                st.image(refined_image, caption=f"Refined: {refined_prompt}", use_container_width=True)
+
+                                # Download button for refined image
+                                buf_refined = BytesIO()
+                                refined_image.save(buf_refined, format="PNG")
+                                byte_im_refined = buf_refined.getvalue()
+
+                                st.download_button(
+                                    label="📥 Download Improved Image",
+                                    data=byte_im_refined,
+                                    file_name="ai_generated_image_refined.png",
+                                    mime="image/png",
+                                    use_container_width=True,
+                                    key="download_refined"
+                                )
+
+                            except Exception as e:
+                                st.error(f"❌ Error generating refined image: {str(e)}")
 
             except Exception as e:
                 error_message = str(e)
