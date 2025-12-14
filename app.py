@@ -3,6 +3,7 @@ from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
 import os
 from PIL import Image
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -70,6 +71,10 @@ try:
 except Exception as e:
     st.error(f"Failed to initialize HuggingFace client: {str(e)}")
     st.stop()
+
+# Initialize session state for image history
+if 'image_history' not in st.session_state:
+    st.session_state.image_history = []
 
 # Style preset definitions (must be defined before sidebar)
 STYLE_PRESETS = {
@@ -403,6 +408,21 @@ if generate_button:
                 # Generate image using InferenceClient with parameters
                 image = client.text_to_image(**generation_params)
 
+                # Add to image history
+                image_data = {
+                    'image': image,
+                    'prompt': prompt,
+                    'enhanced_prompt': enhanced_prompt,
+                    'style': style_preset,
+                    'timestamp': datetime.now(),
+                    'realism_mode': realism_mode
+                }
+                st.session_state.image_history.insert(0, image_data)
+
+                # Limit to 10 images
+                if len(st.session_state.image_history) > 10:
+                    st.session_state.image_history = st.session_state.image_history[:10]
+
                 # Display the generated image
                 st.success("✨ Image generated successfully!")
                 st.image(image, caption=f"Generated: {prompt}", use_container_width=True)
@@ -474,6 +494,21 @@ if generate_button:
 
                                 refined_image = client.text_to_image(**refined_generation_params)
 
+                                # Add refined image to history
+                                refined_image_data = {
+                                    'image': refined_image,
+                                    'prompt': refined_prompt,
+                                    'enhanced_prompt': enhanced_refined_prompt,
+                                    'style': style_preset,
+                                    'timestamp': datetime.now(),
+                                    'realism_mode': realism_mode
+                                }
+                                st.session_state.image_history.insert(0, refined_image_data)
+
+                                # Limit to 10 images
+                                if len(st.session_state.image_history) > 10:
+                                    st.session_state.image_history = st.session_state.image_history[:10]
+
                                 # Display refined image
                                 st.success("✨ Improved image generated!")
                                 st.image(refined_image, caption=f"Refined: {refined_prompt}", use_container_width=True)
@@ -516,6 +551,66 @@ if generate_button:
                 else:
                     st.error(f"❌ Error generating image: {error_message}")
                     st.info("Please try again with a different prompt or check your internet connection.")
+
+# Image History Gallery
+if st.session_state.image_history:
+    st.markdown("---")
+    st.header("🖼️ Image History")
+    st.markdown(f"*Showing {len(st.session_state.image_history)} of 10 maximum images*")
+
+    # Clear history button
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🗑️ Clear History", use_container_width=True, key="clear_history"):
+            st.session_state.image_history = []
+            st.rerun()
+
+    st.markdown("---")
+
+    # Display images in grid (3 columns)
+    for idx in range(0, len(st.session_state.image_history), 3):
+        cols = st.columns(3)
+
+        for col_idx, col in enumerate(cols):
+            img_idx = idx + col_idx
+            if img_idx < len(st.session_state.image_history):
+                img_data = st.session_state.image_history[img_idx]
+
+                with col:
+                    # Display image
+                    st.image(img_data['image'], use_column_width=True)
+
+                    # Show style badge
+                    if img_data['realism_mode']:
+                        st.markdown("🎯 **Ultra Realism Mode**")
+                    elif img_data['style'] != "None":
+                        st.markdown(f"🎨 **Style:** {img_data['style']}")
+
+                    # Show prompt in expander
+                    with st.expander(f"📝 Prompt #{img_idx + 1}", expanded=False):
+                        st.markdown(f"**Original:** {img_data['prompt']}")
+                        st.caption(f"*Generated: {img_data['timestamp'].strftime('%H:%M:%S')}*")
+
+                    # Download button for this image
+                    from io import BytesIO
+                    buf_history = BytesIO()
+                    img_data['image'].save(buf_history, format="PNG")
+                    byte_im_history = buf_history.getvalue()
+
+                    st.download_button(
+                        label="📥 Download",
+                        data=byte_im_history,
+                        file_name=f"ai_image_{img_idx + 1}.png",
+                        mime="image/png",
+                        use_container_width=True,
+                        key=f"download_history_{img_idx}"
+                    )
+
+                    # Regenerate with same prompt button
+                    if st.button("🔄 Regenerate", use_container_width=True, key=f"regen_{img_idx}"):
+                        st.session_state.regen_prompt = img_data['prompt']
+                        st.session_state.regen_style = img_data['style']
+                        st.info(f"💡 Scroll up and click 'Generate Image' to recreate with prompt: '{img_data['prompt']}'")
 
 # Footer
 st.markdown("---")

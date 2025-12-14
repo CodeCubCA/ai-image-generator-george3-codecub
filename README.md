@@ -13,6 +13,7 @@ A web-based AI image generator that transforms text descriptions into stunning i
 - **AI-Powered Image Generation** - Generate high-quality images from text prompts
 - **Style Presets** - 8 built-in artistic styles (Anime, Realistic, Digital Art, Watercolor, Oil Painting, Cyberpunk, Fantasy)
 - **Ultra Realism Mode** - Advanced photorealistic settings with human skin detection
+- **Image History Gallery** - Keep track of up to 10 generated images per session with grid view
 - **Modern UI** - Clean, user-friendly interface built with Streamlit
 - **Fast Processing** - Uses FLUX.1-schnell model for quick generation
 - **Image Refinement** - Regenerate images with improvements
@@ -158,6 +159,23 @@ After generating an image, you can refine it:
 4. The app combines your original prompt + refinement request
 5. Download the improved version
 
+### 🖼️ Image History Gallery
+
+After generating images, they're automatically saved to your session history:
+
+1. **Automatic Saving** - All generated images are saved automatically (up to 10)
+2. **Grid View** - Browse your images in a 3-column grid layout
+3. **View Details** - Each image shows:
+   - The generated image
+   - Style used (or Ultra Realism badge)
+   - Original prompt
+   - Generation timestamp
+4. **Download Any Image** - Individual download buttons for each image
+5. **Regenerate** - Click "🔄 Regenerate" to reuse a previous prompt
+6. **Clear History** - Remove all saved images with one click
+
+**Note:** Image history is stored in session state and will be lost when you close the browser or refresh the page.
+
 ### Tips for Better Results
 
 - **Be specific** - Include details about style, colors, lighting, and mood
@@ -166,6 +184,7 @@ After generating an image, you can refine it:
 - **Describe composition** - Specify what should be in the foreground/background
 - **Add mood/atmosphere** - Include words like "serene", "dramatic", "whimsical"
 - **Use negative prompts** - Avoid unwanted elements like blur, artifacts, or wrong styles
+- **Review history** - Compare different generations to see what works best
 
 ## 📁 Project Structure
 
