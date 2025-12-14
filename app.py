@@ -346,7 +346,7 @@ if generate_button:
 
                 # Display the generated image
                 st.success("✨ Image generated successfully!")
-                st.image(image, caption=f"Generated: {prompt}", use_container_width=True)
+                st.image(image, caption=f"Generated: {prompt}", use_column_width=True)
 
                 # Optional: Add download button
                 # Convert PIL Image to bytes for download
@@ -432,7 +432,7 @@ if generate_button:
 
                                 # Display refined image
                                 st.success("✨ Improved image generated!")
-                                st.image(refined_image, caption=f"Refined: {refined_prompt}", use_container_width=True)
+                                st.image(refined_image, caption=f"Refined: {refined_prompt}", use_column_width=True)
 
                                 # Download button for refined image
                                 buf_refined = BytesIO()
