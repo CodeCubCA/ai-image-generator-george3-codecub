@@ -113,26 +113,6 @@ with st.sidebar:
     if st.session_state.get('realism_mode_temp', False):
         st.info("🎯 Ultra Realism Mode is active - style presets are disabled")
 
-    st.markdown("---")
-    st.markdown("### 🎨 Style Guide")
-
-    st.markdown("""
-    **None** - Uses your prompt exactly as written
-
-    **Anime** - Studio Ghibli-inspired, vibrant illustrated style
-
-    **Realistic** - Photorealistic 8K photography
-
-    **Digital Art** - Modern concept art, trending on ArtStation
-
-    **Watercolor** - Soft, flowing traditional watercolor painting
-
-    **Oil Painting** - Classical art with rich colors and texture
-
-    **Cyberpunk** - Futuristic neon-lit sci-fi aesthetic
-
-    **Fantasy** - Magical, enchanted epic fantasy art
-    """)
 
     st.markdown("---")
     st.header("🚫 Negative Prompts")
@@ -140,72 +120,20 @@ with st.sidebar:
 
     negative_prompt = st.text_area(
         "Negative Prompt (Optional):",
-        placeholder="e.g., CGI, 3D render, cartoon, illustration, blurry, bokeh, unrealistic, artificial, bad anatomy, deformed hands",
-        height=120,
-        help="Avoid unwanted elements: fake/artificial look, blur, bad anatomy, text, watermarks, etc.",
+        placeholder="blurry, low quality, deformed, unrealistic, artificial",
+        height=80,
+        help="Specify unwanted elements to exclude from the image",
         key="negative_prompt"
     )
 
-    with st.expander("💡 Negative Prompt Tips", expanded=False):
-        st.markdown("""
-        **Common examples:**
-        - **Artificial/Fake:** `CGI, 3D render, cartoon, anime, drawing, painting, illustration`
-        - **Quality issues:** `blurry, low quality, distorted, bad anatomy, deformed, unrealistic`
-        - **Background blur:** `bokeh, shallow depth of field, blurred background, defocus, soft focus`
-        - **Elements:** `text, watermark, signature, logo, username`
-        - **Artifacts:** `duplicate, cropped, out of frame, ugly, mutation`
-
-        **💡 For realistic photos:**
-        `CGI, 3D render, cartoon, illustration, unrealistic, artificial, blurry, bokeh`
-
-        **💡 For realistic human skin:**
-        `plastic skin, smooth skin, airbrushed skin, poreless skin, waxy skin`
-        """)
-
     st.markdown("---")
     st.header("ℹ️ About")
-    st.markdown("""
-    This AI Image Generator uses:
-    - **Model:** FLUX.1-schnell
-    - **Provider:** HuggingFace
-    - **Framework:** Streamlit
+    st.markdown(f"""
+    **Model:** {MODEL_NAME}
+    **Status:** 🟢 Ready
 
-    ### 🎯 Ultra Realism Mode:
-
-    **For maximum realism, enable:**
-    - ✅ Ultra Realism Mode checkbox
-    - Automatically sets:
-      - Resolution: 1024x1024 (maximum)
-      - Guidance Scale: 15 (maximum precision)
-      - Inference Steps: 16 (maximum quality)
-      - Enhanced photorealistic keywords
-    - ⚠️ Takes 30-60 seconds per image
-
-    **Tips for realistic images:**
-    - Describe real-world scenes exactly as they appear
-    - The AI uses keywords that mimic real camera captures
-    - Natural lighting is automatically emphasized
-    - Real camera characteristics (grain, HDR) are added
-    - Everything will be sharp and detailed (no background blur)
-    - Images will look like genuine photographs
-    - Avoid fantasy/artistic elements
-
-    **Keywords automatically added:**
-    - "RAW photo" - mimics unprocessed camera output
-    - "Canon EOS R5" - professional camera simulation
-    - "Film grain" - natural camera texture
-    - "Natural color grading" - authentic colors
-
-    ### Example realistic prompts:
-    - "Portrait of a person with natural lighting, shot on DSLR camera"
-    - "Street photography of a busy city intersection at sunset"
-    - "Close-up macro photo of a water droplet on a leaf"
-    - "Product photo of a watch on marble surface, studio lighting"
+    **Made with:** Streamlit + HuggingFace API
     """)
-
-    st.markdown("---")
-    st.markdown("**Model:** " + MODEL_NAME)
-    st.markdown("**Status:** 🟢 Ready")
 
 # Main interface
 st.markdown("---")
