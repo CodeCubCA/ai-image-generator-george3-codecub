@@ -11,9 +11,13 @@ A web-based AI image generator that transforms text descriptions into stunning i
 ## ✨ Features
 
 - **AI-Powered Image Generation** - Generate high-quality images from text prompts
+- **Style Presets** - 8 built-in artistic styles (Anime, Realistic, Digital Art, Watercolor, Oil Painting, Cyberpunk, Fantasy)
+- **Ultra Realism Mode** - Advanced photorealistic settings with human skin detection
 - **Modern UI** - Clean, user-friendly interface built with Streamlit
 - **Fast Processing** - Uses FLUX.1-schnell model for quick generation
+- **Image Refinement** - Regenerate images with improvements
 - **Download Images** - Save your generated images directly
+- **Negative Prompts** - Advanced control over what to exclude
 - **Error Handling** - Comprehensive error messages and troubleshooting
 - **Secure** - API tokens stored securely in environment variables
 
@@ -70,28 +74,98 @@ A web-based AI image generator that transforms text descriptions into stunning i
 
 ## 📖 Usage
 
-1. Enter a detailed description of the image you want to generate
-2. Click the "Generate Image" button
-3. Wait 10-30 seconds for the AI to create your image
-4. View the generated image
-5. Click "Download Image" to save it
+### Basic Workflow
+
+1. **Select a Style** (in sidebar) - Choose from 8 artistic presets or "None" for custom prompts
+2. **Enter Your Prompt** - Describe the image you want to generate
+3. **Optional: Enable Ultra Realism Mode** - For photorealistic results
+4. **Optional: Add Negative Prompt** - Specify what to avoid in the image
+5. **Click "Generate Image"** - Wait 10-30 seconds for creation
+6. **View & Download** - Save your generated image
+7. **Refine if Needed** - Use the refinement feature to improve the image
+
+### 🎨 Style Presets
+
+The app includes 8 built-in style presets in the sidebar:
+
+- **None** - Uses your prompt exactly as written
+- **Anime** - Studio Ghibli-inspired, vibrant illustrated style
+- **Realistic** - Photorealistic 8K photography
+- **Digital Art** - Modern concept art, trending on ArtStation
+- **Watercolor** - Soft, flowing traditional watercolor painting
+- **Oil Painting** - Classical art with rich colors and texture
+- **Cyberpunk** - Futuristic neon-lit sci-fi aesthetic
+- **Fantasy** - Magical, enchanted epic fantasy art
+
+Each style automatically adds appropriate keywords to your prompt. Click "See what this style adds" to preview the keywords.
 
 ### Example Prompts
 
-Try these prompts to get started:
+**With Style Presets:**
+- Style: Anime → Prompt: `a girl walking through a cherry blossom garden`
+- Style: Cyberpunk → Prompt: `a city street at night`
+- Style: Watercolor → Prompt: `a peaceful lakeside scene`
+- Style: Fantasy → Prompt: `a dragon perched on a mountain peak`
 
+**Without Style Presets (None):**
 - `A serene mountain landscape at sunset with purple and orange sky, digital art`
 - `A futuristic cyberpunk city with neon lights at night, highly detailed`
 - `A cute corgi wearing a space suit, floating in space, digital illustration`
 - `An enchanted forest with glowing mushrooms and fireflies, fantasy art style`
-- `A modern minimalist living room with large windows, architectural photography`
+
+### 🎯 Ultra Realism Mode
+
+For maximum photorealism:
+
+1. Enable the "Ultra Realism Mode" checkbox
+2. The app automatically:
+   - Sets resolution to 1024x1024 (maximum)
+   - Increases guidance scale to 15 (maximum precision)
+   - Uses 16 inference steps (maximum quality)
+   - Adds professional camera keywords (Canon EOS R5, RAW photo, film grain)
+   - Detects human subjects and adds realistic skin texture keywords
+3. Generation takes 30-60 seconds for best quality
+4. Style presets are disabled (conflicts with realism settings)
+
+**Best for:** Product photography, portraits, architectural shots, nature photography
+
+### 🚫 Negative Prompts (Advanced)
+
+Use negative prompts to avoid unwanted elements:
+
+**For Realistic Images:**
+```
+CGI, 3D render, cartoon, illustration, blurry, bokeh, shallow depth of field, unrealistic, artificial
+```
+
+**For Human Portraits:**
+```
+plastic skin, smooth skin, airbrushed skin, poreless skin, waxy skin, bad anatomy, deformed hands
+```
+
+**General Quality:**
+```
+blurry, low quality, distorted, ugly, deformed, text, watermark
+```
+
+### 🔧 Image Refinement
+
+After generating an image, you can refine it:
+
+1. Scroll to the "Refine This Image" section
+2. Describe what you'd like to improve (e.g., "make colors more vibrant", "add more detail to the face")
+3. Click "Regenerate with Changes"
+4. The app combines your original prompt + refinement request
+5. Download the improved version
 
 ### Tips for Better Results
 
 - **Be specific** - Include details about style, colors, lighting, and mood
-- **Mention art style** - Add terms like "digital art", "oil painting", "photorealistic"
+- **Use style presets** - They add professional keywords automatically
+- **Check enhanced prompt** - Expand "View Enhanced Prompt & Settings" to see what's being sent to the AI
 - **Describe composition** - Specify what should be in the foreground/background
 - **Add mood/atmosphere** - Include words like "serene", "dramatic", "whimsical"
+- **Use negative prompts** - Avoid unwanted elements like blur, artifacts, or wrong styles
 
 ## 📁 Project Structure
 
@@ -126,11 +200,14 @@ ai-image-generator/
 - Token might be expired - generate a new one
 - Check that your token starts with `hf_`
 
-### "Rate limit reached" Error
+### "Rate limit reached" or "402 Payment Required" Error
 
-- The free tier has usage limits
-- Wait a few minutes before generating another image
-- Consider upgrading your HuggingFace plan for unlimited access
+- You've reached the free monthly usage limit
+- Options to continue:
+  - **Wait until next month** - Free tier resets monthly
+  - **Subscribe to HuggingFace PRO** - Get 20x more included usage
+  - **Add pre-paid credits** - Pay as you go for additional generation
+- Check your usage at [HuggingFace Settings](https://huggingface.co/settings/billing)
 
 ### "Model not found" Error
 

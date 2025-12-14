@@ -71,6 +71,122 @@ except Exception as e:
     st.error(f"Failed to initialize HuggingFace client: {str(e)}")
     st.stop()
 
+# Style preset definitions (must be defined before sidebar)
+STYLE_PRESETS = {
+    "None": "",
+    "Anime": ", anime style, vibrant colors, Studio Ghibli inspired, detailed illustration, manga art, highly detailed",
+    "Realistic": ", photorealistic, highly detailed, 8K resolution, professional photography, sharp focus, natural lighting, realistic materials",
+    "Digital Art": ", digital painting, artstation trending, concept art, highly detailed, intricate details, professional digital illustration",
+    "Watercolor": ", watercolor painting, soft colors, artistic, flowing brushstrokes, traditional art, delicate details",
+    "Oil Painting": ", oil painting, classical art style, rich colors, textured brushstrokes, traditional painting, masterpiece",
+    "Cyberpunk": ", cyberpunk style, neon lights, futuristic, sci-fi, dystopian city, technology, glowing elements, dark atmosphere",
+    "Fantasy": ", fantasy art, magical, enchanted, epic, mystical atmosphere, dramatic lighting, otherworldly, highly detailed"
+}
+
+# Sidebar with style selector (must come before main content to define style_preset)
+with st.sidebar:
+    st.header("🎨 Style Presets")
+    st.markdown("Choose a style to automatically enhance your prompts:")
+
+    # Style selector in sidebar - using session state to handle realism mode
+    if 'realism_mode_temp' not in st.session_state:
+        st.session_state.realism_mode_temp = False
+
+    style_preset = st.selectbox(
+        "Select Style:",
+        list(STYLE_PRESETS.keys()),
+        index=0,
+        help="Select a style preset to automatically add style-specific keywords to your prompt",
+        disabled=st.session_state.get('realism_mode_temp', False)
+    )
+
+    # Show what the style adds
+    if style_preset != "None":
+        with st.expander("💡 See what this style adds", expanded=False):
+            st.code(STYLE_PRESETS[style_preset], language=None)
+
+    if st.session_state.get('realism_mode_temp', False):
+        st.info("🎯 Ultra Realism Mode is active - style presets are disabled")
+
+    st.markdown("---")
+    st.markdown("### 🎨 Style Guide")
+
+    st.markdown("""
+    **None** - Uses your prompt exactly as written
+
+    **Anime** - Studio Ghibli-inspired, vibrant illustrated style
+
+    **Realistic** - Photorealistic 8K photography
+
+    **Digital Art** - Modern concept art, trending on ArtStation
+
+    **Watercolor** - Soft, flowing traditional watercolor painting
+
+    **Oil Painting** - Classical art with rich colors and texture
+
+    **Cyberpunk** - Futuristic neon-lit sci-fi aesthetic
+
+    **Fantasy** - Magical, enchanted epic fantasy art
+    """)
+
+    st.markdown("---")
+    st.header("ℹ️ About")
+    st.markdown("""
+    This AI Image Generator uses:
+    - **Model:** FLUX.1-schnell
+    - **Provider:** HuggingFace
+    - **Framework:** Streamlit
+
+    ### 🎯 Ultra Realism Mode:
+
+    **For maximum realism, enable:**
+    - ✅ Ultra Realism Mode checkbox
+    - Automatically sets:
+      - Resolution: 1024x1024 (maximum)
+      - Guidance Scale: 15 (maximum precision)
+      - Inference Steps: 16 (maximum quality)
+      - Enhanced photorealistic keywords
+    - ⚠️ Takes 30-60 seconds per image
+
+    **Tips for realistic images:**
+    - Describe real-world scenes exactly as they appear
+    - The AI uses keywords that mimic real camera captures
+    - Natural lighting is automatically emphasized
+    - Real camera characteristics (grain, HDR) are added
+    - Everything will be sharp and detailed (no background blur)
+    - Images will look like genuine photographs
+    - Avoid fantasy/artistic elements
+
+    **Keywords automatically added:**
+    - "RAW photo" - mimics unprocessed camera output
+    - "Canon EOS R5" - professional camera simulation
+    - "Film grain" - natural camera texture
+    - "Natural color grading" - authentic colors
+
+    ### 🚫 Negative Prompts:
+
+    **Use negative prompts to avoid:**
+    - Fake/artificial: CGI, 3D render, cartoon, anime, drawing, painting, illustration
+    - Quality issues: blurry, distorted, low quality, out of focus, soft focus
+    - Background blur: bokeh, shallow depth of field, blurred background
+    - Unwanted elements: text, watermark, signature
+    - Bad aesthetics: ugly, deformed, bad anatomy, unrealistic
+    - Wrong mood: dark, gloomy, horror
+
+    **Pro tip for maximum realism:** Use this negative prompt:
+    `CGI, 3D render, cartoon, anime, drawing, painting, illustration, blurry, bokeh, shallow depth of field, unrealistic, artificial`
+
+    ### Example realistic prompts:
+    - "Portrait of a person with natural lighting, shot on DSLR camera"
+    - "Street photography of a busy city intersection at sunset"
+    - "Close-up macro photo of a water droplet on a leaf"
+    - "Product photo of a watch on marble surface, studio lighting"
+    """)
+
+    st.markdown("---")
+    st.markdown("**Model:** " + MODEL_NAME)
+    st.markdown("**Status:** 🟢 Ready")
+
 # Main interface
 st.markdown("---")
 
@@ -147,26 +263,12 @@ realism_mode = st.checkbox(
     help="Automatically optimizes settings for maximum photorealism"
 )
 
-# Style preset
-if not realism_mode:
-    style_preset = st.selectbox(
-        "Choose a style preset (optional):",
-        [
-            "None - Use my prompt as-is",
-            "Photorealistic",
-            "Digital Art",
-            "Oil Painting",
-            "Watercolor",
-            "3D Render",
-            "Anime/Manga",
-            "Sketch/Drawing",
-            "Cinematic",
-            "Fantasy Art"
-        ]
-    )
-else:
-    st.info("🎯 Ultra Realism Mode Active - Maximum quality settings enabled (16 inference steps, will take longer)")
-    style_preset = "Photorealistic"
+# Update session state for realism mode
+st.session_state.realism_mode_temp = realism_mode
+
+# Override style preset if realism mode is enabled
+if realism_mode:
+    style_preset = "None"
 
 # Prompt input
 prompt = st.text_area(
@@ -209,28 +311,10 @@ def enhance_prompt(base_prompt, style, ultra_realism=False):
         # Ultra realism mode - mimicking real camera photography with authentic characteristics
         human_anatomy_detail = ", anatomically correct, realistic human anatomy, real human skin texture, visible skin pores, skin imperfections, natural skin subsurface scattering, authentic dermal details, real skin microstructure, fine skin lines, natural skin blemishes, realistic skin tone variation, genuine skin appearance, skin texture like real photographs of humans, dermatological accuracy, macro photography skin detail, individual pore visibility, natural skin oils, authentic epidermal texture, real subcutaneous details, lifelike skin translucency, biological skin accuracy, medical photography skin precision, true to life human skin, photorealistic flesh tones, natural vein visibility under skin, authentic skin undertones, real human dermis characteristics" if contains_human else ""
         return f"{base_prompt}, RAW photo, genuine photograph, real camera capture, photorealistic, ultra realistic, hyper detailed, 8k uhd, shot on Canon EOS R5, professional DSLR photography, natural photograph, real world scene, authentic lighting, real textures, film grain, natural color grading, high dynamic range, proper exposure, masterpiece quality, crystal clear, sharp focus everywhere, deep focus f/22, everything in focus, full scene detail, volumetric atmospheric lighting, physically accurate, extreme detail throughout, intricate real-world details, accurate colors, natural skin tones, realistic materials, perfect clarity, comprehensive detail, no artificial blur, infinite depth of field, everything sharp, all elements detailed, true to life, optical perfection, real photograph quality, entire scene in sharp focus, background highly detailed, foreground and background equally sharp, no depth of field blur, no bokeh, no defocus, complete scene clarity, f/32 aperture, tack sharp throughout{human_anatomy_detail}"
-    elif style == "None - Use my prompt as-is":
-        return base_prompt
-    elif style == "Photorealistic":
-        human_anatomy_detail = ", anatomically correct, realistic human anatomy, real human skin texture, visible skin pores, skin imperfections, natural skin subsurface scattering, authentic dermal details, fine skin lines, realistic skin tone variation, genuine skin appearance like real photographs, individual pore visibility, natural skin oils, authentic epidermal texture, lifelike skin translucency, photorealistic flesh tones, natural vein visibility, authentic skin undertones" if contains_human else ""
-        return f"{base_prompt}, RAW photo, real photograph, photorealistic, highly detailed, 8k, sharp focus throughout entire image, deep focus f/16, everything in focus, professional DSLR photography, natural lighting, real world scene, authentic colors, film grain, no background blur, genuine camera capture, background highly detailed, foreground and background equally sharp, no bokeh, no defocus, complete scene clarity{human_anatomy_detail}"
-    elif style == "Digital Art":
-        return f"{base_prompt}, digital art, highly detailed throughout, sharp focus everywhere, intricate details, trending on artstation, concept art, everything in focus"
-    elif style == "Oil Painting":
-        return f"{base_prompt}, oil painting, classical art style, rich colors, textured brushstrokes, detailed throughout, everything clearly visible"
-    elif style == "Watercolor":
-        return f"{base_prompt}, watercolor painting, soft colors, flowing, artistic, detailed throughout"
-    elif style == "3D Render":
-        return f"{base_prompt}, 3D render, octane render, highly detailed, sharp focus throughout, volumetric lighting, everything in focus"
-    elif style == "Anime/Manga":
-        return f"{base_prompt}, anime style, manga art, vibrant colors, highly detailed, sharp details throughout, everything clearly drawn"
-    elif style == "Sketch/Drawing":
-        return f"{base_prompt}, pencil sketch, detailed drawing throughout, artistic, monochrome, sharp details everywhere"
-    elif style == "Cinematic":
-        return f"{base_prompt}, cinematic lighting, dramatic, film still, high quality, deep focus, everything in sharp detail"
-    elif style == "Fantasy Art":
-        return f"{base_prompt}, fantasy art, magical, highly detailed throughout, epic, vivid colors, intricate details everywhere"
-    return base_prompt
+    else:
+        # Use style preset
+        style_suffix = STYLE_PRESETS.get(style, "")
+        return base_prompt + style_suffix
 
 # Quality enhancers (hidden in ultra realism mode)
 if not realism_mode:
@@ -278,10 +362,22 @@ if generate_button:
                 enhanced_prompt += ", high quality, sharp focus everywhere, everything in focus, deep focus, no blur"
 
         # Show the enhanced prompt and settings
-        with st.expander("📝 View Enhanced Prompt & Settings", expanded=False):
-            st.info(f"**Positive Prompt:**\n{enhanced_prompt}")
+        with st.expander("📝 View Enhanced Prompt & Settings", expanded=True):
+            st.markdown("**Your Base Prompt:**")
+            st.code(prompt, language=None)
+
+            if style_preset != "None" and not realism_mode:
+                st.markdown(f"**Selected Style:** {style_preset}")
+                st.markdown("**Style Keywords Added:**")
+                st.code(STYLE_PRESETS[style_preset], language=None)
+
+            st.markdown("**Final Enhanced Prompt:**")
+            st.info(enhanced_prompt)
+
             if negative_prompt and negative_prompt.strip():
-                st.warning(f"**Negative Prompt:**\n{negative_prompt}")
+                st.markdown("**Negative Prompt:**")
+                st.warning(negative_prompt)
+
             if realism_mode:
                 st.success(f"🎯 Ultra Realism Settings Applied:\n- Resolution: {actual_width}x{actual_height}\n- Guidance Scale: {actual_guidance_scale}\n- Inference Steps: {actual_steps}")
 
@@ -429,62 +525,3 @@ st.markdown("""
         <p style='font-size: 0.8rem;'>Free tier has rate limits. For unlimited access, consider upgrading your HuggingFace plan.</p>
     </div>
 """, unsafe_allow_html=True)
-
-# Sidebar with information
-with st.sidebar:
-    st.header("ℹ️ About")
-    st.markdown("""
-    This AI Image Generator uses:
-    - **Model:** FLUX.1-schnell
-    - **Provider:** HuggingFace
-    - **Framework:** Streamlit
-
-    ### 🎯 Ultra Realism Mode:
-
-    **For maximum realism, enable:**
-    - ✅ Ultra Realism Mode checkbox
-    - Automatically sets:
-      - Resolution: 1024x1024 (maximum)
-      - Guidance Scale: 15 (maximum precision)
-      - Inference Steps: 16 (maximum quality)
-      - Enhanced photorealistic keywords
-    - ⚠️ Takes 30-60 seconds per image
-
-    **Tips for realistic images:**
-    - Describe real-world scenes exactly as they appear
-    - The AI uses keywords that mimic real camera captures
-    - Natural lighting is automatically emphasized
-    - Real camera characteristics (grain, HDR) are added
-    - Everything will be sharp and detailed (no background blur)
-    - Images will look like genuine photographs
-    - Avoid fantasy/artistic elements
-
-    **Keywords automatically added:**
-    - "RAW photo" - mimics unprocessed camera output
-    - "Canon EOS R5" - professional camera simulation
-    - "Film grain" - natural camera texture
-    - "Natural color grading" - authentic colors
-
-    ### 🚫 Negative Prompts:
-
-    **Use negative prompts to avoid:**
-    - Fake/artificial: CGI, 3D render, cartoon, anime, drawing, painting, illustration
-    - Quality issues: blurry, distorted, low quality, out of focus, soft focus
-    - Background blur: bokeh, shallow depth of field, blurred background
-    - Unwanted elements: text, watermark, signature
-    - Bad aesthetics: ugly, deformed, bad anatomy, unrealistic
-    - Wrong mood: dark, gloomy, horror
-
-    **Pro tip for maximum realism:** Use this negative prompt:
-    `CGI, 3D render, cartoon, anime, drawing, painting, illustration, blurry, bokeh, shallow depth of field, unrealistic, artificial`
-
-    ### Example realistic prompts:
-    - "Portrait of a person with natural lighting, shot on DSLR camera"
-    - "Street photography of a busy city intersection at sunset"
-    - "Close-up macro photo of a water droplet on a leaf"
-    - "Product photo of a watch on marble surface, studio lighting"
-    """)
-
-    st.markdown("---")
-    st.markdown("**Model:** " + MODEL_NAME)
-    st.markdown("**Status:** 🟢 Ready")
