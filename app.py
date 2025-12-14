@@ -127,6 +127,49 @@ with st.sidebar:
     )
 
     st.markdown("---")
+    st.header("⚙️ Advanced Settings")
+    with st.expander("Customize generation parameters", expanded=False):
+        col1, col2 = st.columns(2)
+
+        with col1:
+            image_width = st.slider(
+                "Image Width",
+                min_value=256,
+                max_value=1024,
+                value=768,
+                step=128,
+                help="Width of the generated image in pixels"
+            )
+
+        with col2:
+            image_height = st.slider(
+                "Image Height",
+                min_value=256,
+                max_value=1024,
+                value=768,
+                step=128,
+                help="Height of the generated image in pixels"
+            )
+
+        guidance_scale = st.slider(
+            "Guidance Scale (Precision)",
+            min_value=1.0,
+            max_value=20.0,
+            value=7.5,
+            step=0.5,
+            help="Higher values make the AI follow your prompt more precisely. 7-10 is recommended."
+        )
+
+        num_steps = st.slider(
+            "Inference Steps (Quality)",
+            min_value=1,
+            max_value=16,
+            value=4,
+            step=1,
+            help="More steps = higher quality but slower. FLUX.1-schnell has a maximum of 16 steps."
+        )
+
+    st.markdown("---")
     st.header("ℹ️ About")
     st.markdown(f"""
     **Model:** {MODEL_NAME}
@@ -137,48 +180,6 @@ with st.sidebar:
 
 # Main interface
 st.markdown("---")
-
-# Advanced settings in expander
-with st.expander("⚙️ Advanced Settings (Optional)", expanded=False):
-    col1, col2 = st.columns(2)
-
-    with col1:
-        image_width = st.slider(
-            "Image Width",
-            min_value=256,
-            max_value=1024,
-            value=768,
-            step=128,
-            help="Width of the generated image in pixels"
-        )
-
-    with col2:
-        image_height = st.slider(
-            "Image Height",
-            min_value=256,
-            max_value=1024,
-            value=768,
-            step=128,
-            help="Height of the generated image in pixels"
-        )
-
-    guidance_scale = st.slider(
-        "Guidance Scale (Precision)",
-        min_value=1.0,
-        max_value=20.0,
-        value=7.5,
-        step=0.5,
-        help="Higher values make the AI follow your prompt more precisely. 7-10 is recommended."
-    )
-
-    num_steps = st.slider(
-        "Inference Steps (Quality)",
-        min_value=1,
-        max_value=16,
-        value=4,
-        step=1,
-        help="More steps = higher quality but slower. FLUX.1-schnell has a maximum of 16 steps."
-    )
 
 # Prompt enhancement section
 st.subheader("✍️ Describe Your Image")
