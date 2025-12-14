@@ -135,6 +135,34 @@ with st.sidebar:
     """)
 
     st.markdown("---")
+    st.header("🚫 Negative Prompts")
+    st.markdown("Specify what you **DON'T** want in the image:")
+
+    negative_prompt = st.text_area(
+        "Negative Prompt (Optional):",
+        placeholder="e.g., CGI, 3D render, cartoon, illustration, blurry, bokeh, unrealistic, artificial, bad anatomy, deformed hands",
+        height=120,
+        help="Avoid unwanted elements: fake/artificial look, blur, bad anatomy, text, watermarks, etc.",
+        key="negative_prompt"
+    )
+
+    with st.expander("💡 Negative Prompt Tips", expanded=False):
+        st.markdown("""
+        **Common examples:**
+        - **Artificial/Fake:** `CGI, 3D render, cartoon, anime, drawing, painting, illustration`
+        - **Quality issues:** `blurry, low quality, distorted, bad anatomy, deformed, unrealistic`
+        - **Background blur:** `bokeh, shallow depth of field, blurred background, defocus, soft focus`
+        - **Elements:** `text, watermark, signature, logo, username`
+        - **Artifacts:** `duplicate, cropped, out of frame, ugly, mutation`
+
+        **💡 For realistic photos:**
+        `CGI, 3D render, cartoon, illustration, unrealistic, artificial, blurry, bokeh`
+
+        **💡 For realistic human skin:**
+        `plastic skin, smooth skin, airbrushed skin, poreless skin, waxy skin`
+        """)
+
+    st.markdown("---")
     st.header("ℹ️ About")
     st.markdown("""
     This AI Image Generator uses:
@@ -167,19 +195,6 @@ with st.sidebar:
     - "Canon EOS R5" - professional camera simulation
     - "Film grain" - natural camera texture
     - "Natural color grading" - authentic colors
-
-    ### 🚫 Negative Prompts:
-
-    **Use negative prompts to avoid:**
-    - Fake/artificial: CGI, 3D render, cartoon, anime, drawing, painting, illustration
-    - Quality issues: blurry, distorted, low quality, out of focus, soft focus
-    - Background blur: bokeh, shallow depth of field, blurred background
-    - Unwanted elements: text, watermark, signature
-    - Bad aesthetics: ugly, deformed, bad anatomy, unrealistic
-    - Wrong mood: dark, gloomy, horror
-
-    **Pro tip for maximum realism:** Use this negative prompt:
-    `CGI, 3D render, cartoon, anime, drawing, painting, illustration, blurry, bokeh, shallow depth of field, unrealistic, artificial`
 
     ### Example realistic prompts:
     - "Portrait of a person with natural lighting, shot on DSLR camera"
@@ -282,29 +297,6 @@ prompt = st.text_area(
     height=100,
     help="Be specific! Include details about subject, composition, lighting, colors, and mood."
 )
-
-# Negative prompt input
-with st.expander("🚫 Negative Prompt (Optional) - Advanced Control", expanded=False):
-    st.markdown("""
-    Specify what you **DON'T** want in the image. This helps the AI avoid unwanted elements.
-
-    **Common examples:**
-    - **Artificial/Fake:** `CGI, 3D render, cartoon, anime, drawing, painting, illustration, digital art`
-    - **Quality issues:** `blurry, low quality, distorted, bad anatomy, deformed, unrealistic`
-    - **Mood/style:** `dark, gloomy, scary, horror, violent`
-    - **Elements:** `text, watermark, signature, logo, username`
-    - **Artifacts:** `duplicate, cropped, out of frame, ugly, mutation`
-
-    **💡 For photos that look REAL, always include:** `CGI, 3D render, cartoon, illustration, unrealistic, artificial`
-    """)
-
-    negative_prompt = st.text_area(
-        "Negative Prompt:",
-        placeholder="e.g., CGI, 3D render, cartoon, illustration, blurry, bokeh, shallow depth of field, defocus, background blur, soft focus, unrealistic, artificial, bad anatomy, deformed hands, extra fingers, plastic skin, smooth skin, airbrushed skin, perfect skin, poreless skin, waxy skin, doll skin, mannequin skin, fake skin texture",
-        height=100,
-        help="Avoid fake/artificial elements, ALL types of blur, and bad anatomy! For realistic human skin: add 'plastic skin, smooth skin, airbrushed skin, poreless skin, waxy skin' to get real skin with visible pores and texture.",
-        key="negative_prompt"
-    )
 
 # Add style suffix based on preset
 def enhance_prompt(base_prompt, style, ultra_realism=False):
