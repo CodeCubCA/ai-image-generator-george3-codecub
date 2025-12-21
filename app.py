@@ -9,7 +9,7 @@ from datetime import datetime
 load_dotenv()
 
 # Configuration
-MODEL_NAME = "black-forest-labs/FLUX.1-schnell"
+MODEL_NAME = "stabilityai/stable-diffusion-xl-base-1.0"
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
 
 # Page configuration
