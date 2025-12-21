@@ -12,7 +12,7 @@ load_dotenv()
 # Configuration
 MODEL_NAME = "stabilityai/stable-diffusion-xl-base-1.0"
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
-DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"  # Enable demo mode by default
+DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"  # Disable demo mode by default
 
 # Page configuration
 st.set_page_config(
