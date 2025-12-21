@@ -2,8 +2,9 @@ import streamlit as st
 from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
 import os
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
+import random
 
 # Load environment variables
 load_dotenv()
@@ -11,6 +12,7 @@ load_dotenv()
 # Configuration
 MODEL_NAME = "stabilityai/stable-diffusion-xl-base-1.0"
 HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"  # Enable demo mode by default
 
 # Page configuration
 st.set_page_config(
@@ -43,8 +45,12 @@ st.markdown("""
 
 # Header
 st.title("🎨 AI Image Generator")
-st.markdown("### Transform your ideas into stunning images using AI!")
-st.markdown("*Powered by FLUX.1-schnell - Fast, High-Quality Image Generation*")
+if DEMO_MODE:
+    st.markdown("### Transform your ideas into stunning images using AI!")
+    st.info("🎭 **DEMO MODE ACTIVE** - Generating placeholder images for UI/UX demonstration. All features work!")
+else:
+    st.markdown("### Transform your ideas into stunning images using AI!")
+    st.markdown("*Powered by Stable Diffusion XL - High-Quality Image Generation*")
 
 # Check if API token is configured
 if not HUGGINGFACE_TOKEN or HUGGINGFACE_TOKEN == "your_token_here":
@@ -87,6 +93,64 @@ STYLE_PRESETS = {
     "Cyberpunk": ", cyberpunk style, neon lights, futuristic, sci-fi, dystopian city, technology, glowing elements, dark atmosphere",
     "Fantasy": ", fantasy art, magical, enchanted, epic, mystical atmosphere, dramatic lighting, otherworldly, highly detailed"
 }
+
+# Demo mode function to generate placeholder images
+def generate_demo_image(prompt, style, width=768, height=768):
+    """Generate a colorful placeholder image for demo purposes"""
+    # Style-based color schemes
+    style_colors = {
+        "None": [(100, 150, 200), (150, 200, 250)],
+        "Anime": [(255, 182, 193), (255, 105, 180)],
+        "Realistic": [(139, 69, 19), (210, 180, 140)],
+        "Digital Art": [(138, 43, 226), (75, 0, 130)],
+        "Watercolor": [(173, 216, 230), (135, 206, 250)],
+        "Oil Painting": [(184, 134, 11), (218, 165, 32)],
+        "Cyberpunk": [(0, 255, 255), (255, 0, 255)],
+        "Fantasy": [(148, 0, 211), (75, 0, 130)]
+    }
+
+    # Get colors for the selected style
+    colors = style_colors.get(style, [(100, 150, 200), (150, 200, 250)])
+
+    # Create gradient image
+    img = Image.new('RGB', (width, height))
+    draw = ImageDraw.Draw(img)
+
+    # Draw gradient background
+    for i in range(height):
+        r = int(colors[0][0] + (colors[1][0] - colors[0][0]) * i / height)
+        g = int(colors[0][1] + (colors[1][1] - colors[0][1]) * i / height)
+        b = int(colors[0][2] + (colors[1][2] - colors[0][2]) * i / height)
+        draw.rectangle([(0, i), (width, i + 1)], fill=(r, g, b))
+
+    # Add text overlay
+    try:
+        # Try to use default font, if not available use basic
+        font_size = 40
+        # Draw text with background
+        text = f"DEMO: {style} Style"
+        prompt_text = prompt[:50] + "..." if len(prompt) > 50 else prompt
+
+        # Calculate text position
+        text_bbox = draw.textbbox((0, 0), text)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+
+        # Draw semi-transparent background for text
+        padding = 20
+        draw.rectangle(
+            [(width//2 - text_width//2 - padding, height//2 - 60),
+             (width//2 + text_width//2 + padding, height//2 + 60)],
+            fill=(0, 0, 0, 180)
+        )
+
+        # Draw text
+        draw.text((width//2, height//2 - 30), text, fill=(255, 255, 255), anchor="mm")
+        draw.text((width//2, height//2 + 10), prompt_text, fill=(200, 200, 200), anchor="mm")
+    except:
+        pass
+
+    return img
 
 # Sidebar with style selector (must come before main content to define style_preset)
 with st.sidebar:
@@ -308,26 +372,36 @@ if generate_button:
                 st.success(f"🎯 Ultra Realism Settings Applied:\n- Resolution: {actual_width}x{actual_height}\n- Guidance Scale: {actual_guidance_scale}\n- Inference Steps: {actual_steps}")
 
         # Adjust spinner message based on mode
-        spinner_message = "🎨 Creating ultra-realistic masterpiece... This will take 30-60 seconds for maximum quality..." if realism_mode else "🎨 Creating your masterpiece... This may take 10-30 seconds..."
+        if DEMO_MODE:
+            spinner_message = "🎨 Generating demo image..."
+        else:
+            spinner_message = "🎨 Creating ultra-realistic masterpiece... This will take 30-60 seconds for maximum quality..." if realism_mode else "🎨 Creating your masterpiece... This may take 10-30 seconds..."
 
         with st.spinner(spinner_message):
             try:
-                # Prepare parameters for image generation
-                generation_params = {
-                    "prompt": enhanced_prompt,
-                    "model": MODEL_NAME,
-                    "width": actual_width,
-                    "height": actual_height,
-                    "guidance_scale": actual_guidance_scale,
-                    "num_inference_steps": actual_steps
-                }
+                # Generate image - use demo mode if enabled or if API fails
+                if DEMO_MODE:
+                    # Generate demo placeholder image
+                    import time
+                    time.sleep(1)  # Simulate processing time
+                    image = generate_demo_image(prompt, style_preset, actual_width, actual_height)
+                else:
+                    # Prepare parameters for image generation
+                    generation_params = {
+                        "prompt": enhanced_prompt,
+                        "model": MODEL_NAME,
+                        "width": actual_width,
+                        "height": actual_height,
+                        "guidance_scale": actual_guidance_scale,
+                        "num_inference_steps": actual_steps
+                    }
 
-                # Add negative prompt if provided
-                if negative_prompt and negative_prompt.strip():
-                    generation_params["negative_prompt"] = negative_prompt
+                    # Add negative prompt if provided
+                    if negative_prompt and negative_prompt.strip():
+                        generation_params["negative_prompt"] = negative_prompt
 
-                # Generate image using InferenceClient with parameters
-                image = client.text_to_image(**generation_params)
+                    # Generate image using InferenceClient with parameters
+                    image = client.text_to_image(**generation_params)
 
                 # Add to image history
                 image_data = {
@@ -401,19 +475,24 @@ if generate_button:
                                         enhanced_refined_prompt += ", high quality, sharp focus everywhere, everything in focus, deep focus, no blur"
 
                                 # Generate refined image
-                                refined_generation_params = {
-                                    "prompt": enhanced_refined_prompt,
-                                    "model": MODEL_NAME,
-                                    "width": actual_width,
-                                    "height": actual_height,
-                                    "guidance_scale": actual_guidance_scale,
-                                    "num_inference_steps": actual_steps
-                                }
+                                if DEMO_MODE:
+                                    import time
+                                    time.sleep(1)
+                                    refined_image = generate_demo_image(refined_prompt, style_preset, actual_width, actual_height)
+                                else:
+                                    refined_generation_params = {
+                                        "prompt": enhanced_refined_prompt,
+                                        "model": MODEL_NAME,
+                                        "width": actual_width,
+                                        "height": actual_height,
+                                        "guidance_scale": actual_guidance_scale,
+                                        "num_inference_steps": actual_steps
+                                    }
 
-                                if negative_prompt and negative_prompt.strip():
-                                    refined_generation_params["negative_prompt"] = negative_prompt
+                                    if negative_prompt and negative_prompt.strip():
+                                        refined_generation_params["negative_prompt"] = negative_prompt
 
-                                refined_image = client.text_to_image(**refined_generation_params)
+                                    refined_image = client.text_to_image(**refined_generation_params)
 
                                 # Add refined image to history
                                 refined_image_data = {
